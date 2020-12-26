@@ -1,0 +1,10 @@
+djangorestframework~=3.12.1
+dj-rest-auth
+django-allauth
+django-cors-headers
+django-rest-swagger
+django-phone-field
+PyMySQL~=0.10.1
+django~=3.1.2
+coreapi~=2.3.3
+django-rest-auth~=0.9.5

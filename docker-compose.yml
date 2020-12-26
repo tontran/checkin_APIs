@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:8.0.22
+#    ports:
+#      - '3306:3306'
+    environment:
+      MYSQL_DATABASE: 'vannails_checkin'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: 'root'
+      MYSQL_ROOT_PASSWORD: 'root'
+  web:
+    container_name: checkin
+    build:
+      context: .
+#    stdin_open: true
+#    tty: true
+#    environment:
+#      - DJANGO_SETTINGS_MODULE=hello_world.settings.development
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
+#    volumes:
+#      - .:/code
+    ports:
+      - 8000:8000
+    depends_on:
+      - mysql
