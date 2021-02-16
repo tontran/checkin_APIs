@@ -1,5 +1,9 @@
-from django.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model, authenticate, logout
+import os
+
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib.auth import get_user_model, authenticate, logout, login
+from django.contrib import messages
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
@@ -11,13 +15,16 @@ from rest_framework.schemas import AutoSchema
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 
+from checkin_project.settings import BASE_DIR
 from .models import *
 from .serializers import *
+from .forms import CustomUserCreationForm, CustomUserLogInForm, ReviewSubmitForm
 from . import serializers
 from .utils import get_and_authenticate_user, create_user_account
 import coreapi
 
 User = get_user_model()
+
 
 # Staff
 class StaffViewSet(viewsets.ModelViewSet):
@@ -25,11 +32,13 @@ class StaffViewSet(viewsets.ModelViewSet):
     queryset = Staff.objects.all()
     serializer_class = StaffSerializer
 
+
 # Location
 class LocationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
+
 
 # Service
 class ServiceViewSet(viewsets.ModelViewSet):
@@ -37,23 +46,28 @@ class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
 
+
 # CustomUser
 class CustomUserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
+
 # Review
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
     def get(self):
         queryset = Review.objects.all()
         serializer = ReviewSerializer(queryset, many=True)
         return Response(serializer.data)
 
+
 class ReviewList(APIView):
     permission_classes = [IsAdminUser]
+
     def get(self, request, format=None):
         reviews = Review.objects.all()
         serializer = ReviewSerializer(reviews, many=True)
@@ -66,8 +80,10 @@ class ReviewList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class ReviewDetail(APIView):
     permission_classes = [IsAdminUser]
+
     def get_object(self, pk):
         try:
             return Review.objects.get(pk=pk)
@@ -141,6 +157,7 @@ class AuthViewSet(viewsets.GenericViewSet):
             return self.serializer_classes[self.action]
         return super().get_serializer_class()
 
+
 # User Auth
 class ObtainAuthTokenView(APIView):
     authentication_classes = []
@@ -171,6 +188,7 @@ class ObtainAuthTokenView(APIView):
             # context['token'] = token.key
 
         return Response(context)
+
 
 # # User Logout
 # class Logout(APIView):
@@ -236,3 +254,83 @@ def validate_email(email):
         return None
     if account != None:
         return email
+
+
+# For templates
+def homepage(request):
+    if request.method == "POST":
+        form = ReviewSubmitForm(request.POST)
+        # location_id = form.cleaned_data.get('location_id')
+        # print("Location: ", location_id)
+        if form.is_valid():
+            review = form.save()
+            print("Review: ", review)
+            messages.success(request, f"Thank you for your reviews: {review}")
+            return HttpResponseRedirect('/') # this to prevent resubmission
+        else:
+            for msg in form.error_messages:
+                print(form.error_messages[msg])
+    form = ReviewSubmitForm
+    return render(request,
+                  template_name='main/home.html',
+                  context={"form": form, "locations": Location.objects.all()})
+
+def reviewpage(request):
+    return render(request,
+                  template_name='main/reviews.html',
+                  context={"reviews": Review.objects.all})
+def submit_review(request):
+    if request.method == "POST":
+        form = ReviewSubmitForm(request.POST)
+        if form.is_valid():
+            messages.success(request, f"Thank you for your reviews")
+        else:
+            for msg in form.error_messages:
+                print(form.error_messages[msg])
+    form = ReviewSubmitForm
+    return redirect("checkin_api:homepage")
+
+
+def register(request):
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            email = form.cleaned_data.get('email')
+            messages.success(request, f"New account created: {email}")
+            login(request, user)
+            messages.info(request, f"You're now logged in as {email}")
+            return redirect("checkin_api:homepage")
+        else:
+            for msg in form.error_messages:
+                print(form.error_messages[msg])
+    form = CustomUserCreationForm
+    return render(request,
+                  "main/register.html",
+                  context={"form": form})
+
+def login_request(request):
+    if request.method == "POST":
+        form = CustomUserLogInForm(data=request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+            password = form.cleaned_data.get('password')
+            user = authenticate(email=email, password=password)
+            if user is not None:
+                login(request, user)
+                messages.info(request, f"You're now logged in as: {email}")
+                return redirect("/")
+            else:
+                messages.error(request, "Invalid email or password")
+        else:
+            messages.error(request, "Something is wrong!!!")
+    form = CustomUserLogInForm
+    return render(request,
+                  "main/login.html",
+                  context={"form": form})
+
+def logout_request(request):
+    logout(request)
+    messages.info(request, "Successfully logged out!")
+    # return render("checkin_api:homepage")
+    return render(request, "main/home.html")

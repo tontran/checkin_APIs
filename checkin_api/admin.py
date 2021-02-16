@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from tinymce.widgets import TinyMCE
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from django.apps import apps
-from .models import CustomUser
+from .models import *
 
 models = apps.get_models()
 
@@ -48,5 +49,14 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(apps.get_model("checkin_api", "Review"))
 class ReviewAdmin(admin.ModelAdmin):
-    class Meta:
-        model = apps.get_model("checkin_api", "Review")
+    fieldsets = [
+        ("Content", {"fields": ["content"]}),
+        ("Rating", {'fields': ["rating", "location"]}),
+        ("Staff/Customer", {'fields': ["staff", "customer"]}),
+    ]
+    # formfield_overrides = {
+    #     models.TextField: {'widget': TinyMCE()},
+    # }
+
+    # class Meta:
+    #     model = apps.get_model("checkin_api", "Review")
