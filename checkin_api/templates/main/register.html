@@ -1,8 +1,10 @@
 {% extends "main/header.html" %}
+{% load materializecss %}
 {% block content %}
     <form method="POST">
         {% csrf_token %}
-        {{ form.as_p}}
+        {{ form|materializecss}}
+<!--        <button onclick="alert('Hello\nHow are you?')">Try it</button>-->
         <button class="btn" type="submit">Register</button>
     </form>
     <p><a href="/login"><strong>Log in</strong></a></p>

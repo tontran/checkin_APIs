@@ -11,7 +11,7 @@
                     <p>Please let us know how we served you today</p>
                 </div>
                 <div class="card-action">
-                    <a class="waves-effect waves-light btn modal-trigger" href="#modal{{loc.id}}">Write a review</a>
+                    <a class="btn-floating halfway-fab waves-effect waves-light dark blue modal-trigger" href="#modal{{loc.id}}"><i class="material-icons">add</i></a>
                 </div>
             </div>
         </div>
@@ -23,9 +23,7 @@
                     {{ form.as_p }}
                 </div>
                 <div class="modal-footer">
-                    <button name="submit_review_btn" class="btn modal-close waves-effect waves-green btn-flat"
-                            type="submit">Send
-                    </button>
+                    <a name="submit_review_btn" class="modal-close waves-effect waves-light btn dark blue"><i class="material-icons left">cloud</i>Send</a>
                 </div>
             </form>
         </div>

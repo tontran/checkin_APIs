@@ -279,32 +279,30 @@ def reviewpage(request):
     return render(request,
                   template_name='main/reviews.html',
                   context={"reviews": Review.objects.all})
-def submit_review(request):
-    if request.method == "POST":
-        form = ReviewSubmitForm(request.POST)
-        if form.is_valid():
-            messages.success(request, f"Thank you for your reviews")
-        else:
-            for msg in form.error_messages:
-                print(form.error_messages[msg])
-    form = ReviewSubmitForm
-    return redirect("checkin_api:homepage")
+# def submit_review(request):
+#     if request.method == "POST":
+#         form = ReviewSubmitForm(request.POST)
+#         if form.is_valid():
+#             messages.success(request, f"Thank you for your reviews")
+#         else:
+#             for msg in form.error_messages:
+#                 print(form.error_messages[msg])
+#     form = ReviewSubmitForm
+#     return redirect("checkin_api:homepage")
 
 
 def register(request):
-    if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            email = form.cleaned_data.get('email')
-            messages.success(request, f"New account created: {email}")
-            login(request, user)
-            messages.info(request, f"You're now logged in as {email}")
-            return redirect("checkin_api:homepage")
-        else:
-            for msg in form.error_messages:
-                print(form.error_messages[msg])
-    form = CustomUserCreationForm
+    #if request.method == "POST":
+    form = CustomUserCreationForm(request.POST or None)
+    if form.is_valid():
+        user = form.save()
+        email = form.cleaned_data.get('email')
+        messages.success(request, f"New account created: {email}")
+        login(request, user)
+        messages.info(request, f"You're now logged in as {email}")
+        return HttpResponseRedirect('/')
+
+    # form = CustomUserCreationForm
     return render(request,
                   "main/register.html",
                   context={"form": form})

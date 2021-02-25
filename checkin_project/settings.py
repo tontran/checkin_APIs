@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
 
     'tinymce',
+    'materializecssform',
 ]
 AUTH_USER_MODEL = 'checkin_api.CustomUser'
 
@@ -210,3 +211,5 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:8100',
     'http://localhost:8000',
 )
+
+MATERIALIZECSS_ICON_SET = 'fontawesome'
